@@ -149,7 +149,10 @@ lexIdent :: Parser Char Ident
 lexIdent = greedy (satisfy isAlphaNum)
 
 lexWhiteSpace :: Parser Char String
-lexWhiteSpace = greedy (satisfy isSpace)
+lexWhiteSpace = greedy (satisfy isSpace <|> isComment)
+
+isComment :: Parser Char Char
+isComment = satisfy (== '/') *> satisfy (== '/') *> greedy (satisfy (/= '\n')) *> pure ' '
 
 greedyChoice :: [Parser s a] -> Parser s a
 greedyChoice = foldr (<<|>) empty
