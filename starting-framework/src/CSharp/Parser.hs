@@ -237,7 +237,21 @@ pExprSimple =  ExprLit  <$> pLiteral
            <|> parenthesised pExpr
 
 pExpr :: Parser Token Expr
-pExpr = chainr pExprSimple (ExprOper <$> sOperator)
+pExpr = foldl makeLevel pExprSimple operators
+  where
+    -- Create a parsing level for a given set of operators
+    makeLevel :: Parser Token Expr -> [Operator] -> Parser Token Expr
+    makeLevel lowerLevel ops = chainl lowerLevel (ExprOper <$> sOperatorLevel ops)
+
+-- Parses a specific set of operators
+sOperatorLevel :: [Operator] -> Parser Token Operator
+sOperatorLevel ops = anySymbol >>= \case
+  Operator op | op `elem` ops -> pure op
+  _ -> failp
+
+
+operators :: [[Operator]]
+operators = [[OpAsg], [OpMul, OpDiv, OpMod], [OpAdd, OpSub], [OpLt, OpGt, OpLeq, OpGeq], [OpEq, OpNeq], [OpAnd], [OpXor], [OpOr]]
 
 pDecl :: Parser Token Decl
 pDecl = Decl <$> pRetType <*> sLowerId
