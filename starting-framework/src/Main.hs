@@ -22,7 +22,8 @@ main = do
   files <- case args of
     [] -> do
       putStrLn "no argument given; assuming example.cs"
-      return ["example.cs"]
+      --return ["example.cs"]
+      return ["useTest.cs"]
     xs -> return xs
   -- translate each of the files
   mapM_ processFile files
@@ -34,6 +35,7 @@ processFile infile = do
   let outfile = addExtension (dropExtension infile) "ssm"
   xs <- readFile infile
   let program = run "parser" (pClass <* eof) . run "lexer" lexicalScanner $ xs 
+  print program
   case foldCSharp analysisAlgebra program of
     Valid -> do
       let ssm = formatCode $ foldCSharp codeAlgebra program
