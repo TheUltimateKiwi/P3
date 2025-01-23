@@ -78,23 +78,23 @@ fExprVar x va = case va of
     Address ->  [LDLA loc]
   where loc = 42
 
+fAndOr :: Bool -> E -> E -> E
+fAndOr isAnd e1 e2 va  | isAnd     = c ++ [BRF (s1 + 2)] ++ c2 ++ [BRA 2]
+                       | otherwise = c ++ [BRT (s1 + 2)] ++ c2 ++ [BRA 2]
+  where
+    c = e1 Value
+    c2 = e2 Value
+    s1 = codeSize c2
+
 fExprOp :: Operator -> E -> E -> E
 fExprOp OpAsg e1 e2 va = e2 Value ++ [LDS 0] ++ e1 Address ++ [STA 0]
-fExprOp OpAnd e1 e2 va = c ++ [BRF (s1 + 2)] ++ c2 ++ [BRA 2] 
-  where
-    c = e1 Value
-    c2 = e2 Value
-    s1 = codeSize c2
-fExprOp OpOr  e1 e2 va = c ++ [BRT (s1 + 2)] ++ c2 ++ [BRA 2] 
-  where
-    c = e1 Value
-    c2 = e2 Value
-    s1 = codeSize c2
+fExprOp OpAnd e1 e2 va = fAndOr True e1 e2 va
+fExprOp OpOr  e1 e2 va = fAndOr False e1 e2 va
 fExprOp op    e1 e2 va = e1 Value ++ e2 Value ++ [
    case op of
     { OpAdd -> ADD; OpSub -> SUB; OpMul -> MUL; OpDiv -> DIV;
     ; OpMod -> MOD
-    ; OpAnd -> AND; OpOr -> OR; OpXor -> XOR;
+    ; OpXor -> XOR;
     ; OpLeq -> LE; OpLt -> LT;
     ; OpGeq -> GT; OpGt -> GT;
     ; OpEq  -> EQ; OpNeq -> NE;}
